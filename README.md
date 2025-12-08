@@ -66,8 +66,108 @@ START-OF-SELECTION.
 DATA GT_AVGR TYPE 
 
 
-
-
   CL_DEMO_OUTPUT=>DISPLAY( GT_AVGR ).
+
+```
+
+
+```ABAP
+
+*&---------------------------------------------------------------------*
+*& Report ZQUIZ_12_G21
+*&---------------------------------------------------------------------*
+*&
+*&---------------------------------------------------------------------*
+REPORT zquiz_12_g21.
+
+DATA : gv_year TYPE numc4.
+
+TYPES : BEGIN OF ty_data,
+          carrid   TYPE sflight-carrid,
+          carrname TYPE scarr-carrname,
+          currcode TYPE scarr-currcode,
+          Jan      TYPE sflight-paymentsum,
+          Feb      TYPE sflight-paymentsum,
+          Mar      TYPE sflight-paymentsum,
+          Apr      TYPE sflight-paymentsum,
+          May      TYPE sflight-paymentsum,
+          Jun      TYPE sflight-paymentsum,
+          Jul      TYPE sflight-paymentsum,
+          Aug      TYPE sflight-paymentsum,
+          Sep      TYPE sflight-paymentsum,
+          Oct      TYPE sflight-paymentsum,
+          Nov      TYPE sflight-paymentsum,
+          Dec      TYPE sflight-paymentsum,
+        END OF ty_data.
+
+TYPES : BEGIN OF ty_list,
+          carrid     TYPE sflight-carrid,
+          carrname   TYPE scarr-carrname,
+          currcode   TYPE scarr-currcode,
+          paymentsum TYPE sflight-paymentsum,
+          fldate     TYPE sflight-fldate,
+        END OF ty_list.
+
+DATA : gs_list TYPE ty_list,
+       gt_list TYPE TABLE OF ty_list.
+
+DATA : gs_data TYPE ty_data,
+       gt_data TYPE TABLE OF ty_data.
+
+SELECT-OPTIONS : so_air FOR gs_list-carrid,
+                 so_year FOR gv_year DEFAULT 2025.
+
+*---------------------------------
+*---------------------------------
+*---------------------------------
+
+AT SELECTION-SCREEN.
+
+START-OF-SELECTION.
+  IF so_year-low IS NOT INITIAL AND so_year-high IS INITIAL.
+    so_year-high = so_year-low && '1231'.
+    so_year-low = so_year-low && '0101'.
+  ENDIF.
+
+  SELECT sf~carrid sc~carrname sc~currcode sf~paymentsum sf~fldate
+    FROM sflight AS sf INNER JOIN scarr AS sc ON sf~carrid = sc~carrid
+    INTO CORRESPONDING FIELDS OF gs_list
+    WHERE sf~carrid IN so_air
+      AND sf~fldate BETWEEN so_year-low AND so_year-high.
+
+    CLEAR gs_data.
+    MOVE-CORRESPONDING gs_list TO gs_data.
+
+    IF gs_list-fldate+4(2) = '01'.
+      gs_data-jan = gs_list-paymentsum.
+    ELSEIF gs_list-fldate+4(2) = '02'.
+      gs_data-feb = gs_list-paymentsum.
+    ELSEIF gs_list-fldate+4(2) = '03'.
+      gs_data-mar = gs_list-paymentsum.
+    ELSEIF gs_list-fldate+4(2) = '04'.
+      gs_data-apr = gs_list-paymentsum.
+    ELSEIF gs_list-fldate+4(2) = '05'.
+      gs_data-may = gs_list-paymentsum.
+    ELSEIF gs_list-fldate+4(2) = '06'.
+      gs_data-jun = gs_list-paymentsum.
+    ELSEIF gs_list-fldate+4(2) = '07'.
+      gs_data-jul = gs_list-paymentsum.
+    ELSEIF gs_list-fldate+4(2) = '08'.
+      gs_data-aug = gs_list-paymentsum.
+    ELSEIF gs_list-fldate+4(2) = '09'.
+      gs_data-sep = gs_list-paymentsum.
+    ELSEIF gs_list-fldate+4(2) = '10'.
+      gs_data-oct = gs_list-paymentsum.
+    ELSEIF gs_list-fldate+4(2) = '11'.
+      gs_data-nov = gs_list-paymentsum.
+    ELSEIF gs_list-fldate+4(2) = '12'.
+      gs_data-dec = gs_list-paymentsum.
+    ENDIF.
+
+    COLLECT gs_data INTO gt_data.
+
+  ENDSELECT.
+
+  cl_demo_output=>display( gt_data ).
 
 ```
